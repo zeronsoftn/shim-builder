@@ -1,13 +1,11 @@
-FROM <!DOCKER_IMAGE_ARCH>/ubuntu:20.04
+FROM amd64/ubuntu:20.04
 MAINTAINER Joseph Lee <joseph@zeronsoftn.com>
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV BUILD_ARCH=<!BUILD_ARCH>
-ENV BUILD_GRUB_ARCH=<!BUILD_GRUB_ARCH>
 
 COPY ["mirrors.txt", "/tmp/"]
 RUN apt-get update -y && apt-get install -y ca-certificates openssl && \
-    APT_REPO=$(cat /tmp/mirrors.txt | grep '<!MIRROR_FIND_STR>' | head -n 1) && \
+    APT_REPO=$(cat /tmp/mirrors.txt | grep '/ubuntu/' | head -n 1) && \
     echo "APT_REPO: $APT_REPO" && \
     echo "\n\
 deb $APT_REPO focal main restricted universe multiverse\n\
@@ -21,14 +19,18 @@ RUN apt-get install -y libelf-dev
 
 COPY ["opt/*", "vendor_cert.der", "/opt/"]
 COPY ["build/shim.tar", "/opt/shim.tar"]
-
-RUN mkdir -p /work/build
+RUN chmod +x /opt/*.sh && \
+    mkdir -p /work/build-x86_64 /work/build-ia32
 
 WORKDIR /work
 
 RUN tar xf /opt/shim.tar
 
-# Build
-RUN make -C build VENDOR_CERT_FILE=/opt/vendor_cert.der EFI_PATH=/usr/lib \
+# Build 64-bit
+RUN make -C build-x86_64 ARCH=x86_64 VENDOR_CERT_FILE=/opt/vendor_cert.der EFI_PATH=/usr/lib \
+    TOPDIR=.. -f ../Makefile -j4
+
+# Build 32-bit
+RUN make -C build-ia32 ARCH=ia32 VENDOR_CERT_FILE=/opt/vendor_cert.der EFI_PATH=/usr/lib32 \
     TOPDIR=.. -f ../Makefile -j4
 

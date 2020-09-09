@@ -1,0 +1,3 @@
+http://mirror.kakao.com/ubuntu/
+https://mirror.misakamikoto.network/ubuntu-ports/
+
