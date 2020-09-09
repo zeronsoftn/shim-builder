@@ -16,7 +16,11 @@ REVIEW_REQUEST_OUTPUT_DIR=$CURRENT_DIR/review-request
 rm -rf ./build
 rm -rf $BUILD_OUT_DIR
 mkdir -p $BUILD_TMP_DIR $BUILD_OUT_DIR $BUILD_LOG_DIR $REVIEW_REQUEST_OUTPUT_DIR
-curl -o ./build/tmp/mirrors.txt http://mirrors.ubuntu.com/mirrors.txt
+#curl -o ./build/tmp/mirrors.txt http://mirrors.ubuntu.com/mirrors.txt
+cat > ./build/tmp/mirrors.txt <<EOF
+http://mirror.kakao.com/ubuntu/
+https://mirror.misakamikoto.network/ubuntu-ports/
+EOF
 
 rm -rf ./build/shim
 git clone -b "$SHIM_GIT_TAG" "$SHIM_GIT_REPO" ./build/shim
@@ -50,4 +54,5 @@ for build_arch in $ARCH_LIST; do
 	cp $cur_log_file $REVIEW_REQUEST_OUTPUT_DIR/buildlog-$build_arch.txt
 done
 
+find $REVIEW_REQUEST_OUTPUT_DIR -type f -name "*.efi" -or -name "*.EFI" | sort | xargs sha256sum
 
